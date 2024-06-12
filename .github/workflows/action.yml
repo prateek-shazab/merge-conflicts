@@ -20,8 +20,11 @@ jobs:
 
     - name: Check for merge conflicts
       run: |
-        git merge --no-commit --no-ff .pr -m "Dummy commit" --dry-run
-        if [ $? -ne 0 ]; then
+        git fetch origin ${{ github.base_ref }}
+        git fetch origin ${{ github.head_ref }}
+        MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} origin/${{ github.head_ref }})
+        git merge-tree $MERGE_BASE origin/${{ github.base_ref }} origin/${{ github.head_ref }} | grep -q 'changed in both'
+        if [ $? -eq 0 ]; then
           echo "Merge conflict detected!"
           exit 1
         fi
