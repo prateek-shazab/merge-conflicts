@@ -10,12 +10,27 @@ jobs:
     steps:
     - name: Checkout the repository
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags
+
+    - name: Fetch the main branch
+      run: git fetch origin main
 
     - name: Check for merge conflicts
       run: |
-        git fetch origin +refs/heads/main:refs/remotes/origin/main
+        # Checkout the branch from the pull request
         git checkout ${{ github.head_ref }}
+
+        # Check if the branch checkout was successful
+        if [ $? -ne 0 ]; then
+          echo "Error: Failed to checkout branch ${{ github.head_ref }}. The branch might not exist."
+          exit 1
+        fi
+
+        # Attempt to merge the main branch into the PR branch
         if ! git merge --no-commit --no-ff origin/main; then
           echo "Merge conflict detected in PR #${{ github.event.pull_request.number }} on branch ${{ github.head_ref }}"
           exit 1
+        else
+          echo "No merge conflicts detected."
         fi
