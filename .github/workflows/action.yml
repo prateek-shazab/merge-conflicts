@@ -1,27 +1,24 @@
-name: Check for merge conflicts
+name: Check Merge Conflicts
+
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  pull_request:  # Trigger on pull request events
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  check_conflicts:
+    runs-on: ubuntu-latest  # Replace with your desired runner OS
     steps:
-    - name: Checkout base branch
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.base_ref }}
+      - uses: actions/checkout@v3  # Checkout the repository code
+      - name: Fetch main branch
+        run: git fetch origin main:main
+      - name: Checkout main branch
+        run: git checkout main
+      - name: Check for merge conflicts
+        run: |
+          git merge --ff-only origin/${{ github.event.pull_request.head.ref }}  # Use ${{ github.event.pull_request.head.ref }} for head branch
 
-    - name: Checkout PR branch
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
-        path: .pr
-
-    - name: Check for merge conflicts
-      run: |
-        git merge --no-commit --no-ff .pr -m "Dummy commit" --dry-run
-        if [ $? -ne 0 ]; then
-          echo "Merge conflict detected!"
-          exit 1
-        fi
+          if [ $? -eq 0 ]; then
+            echo "No merge conflicts detected."
+          else
+            echo "Merge conflicts detected! Please resolve them before merging."
+            exit 1
+          fi
