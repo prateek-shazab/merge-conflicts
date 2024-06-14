@@ -1,25 +1,17 @@
-name: Check for merge conflicts
-on:
-  schedule:
-    - cron: '* * * * *'  # This will run the action every day at midnight
+stages:
+  - check_conflicts
 
 jobs:
-  check-conflicts:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # This is required to fetch all branches
+  check_conflicts:
+    stage: check_conflicts
+    script: |
+      git fetch origin main:main
+      git checkout main
+      git merge --ff-only origin/$CI_MERGE_REQUEST_IID_SOURCE
 
-      - name: Check for merge conflicts
-        run: |
-          git fetch origin main:main
-          for branch in $(git branch -r | grep -v main); do
-            git checkout $branch
-            if git merge-base --is-ancestor main HEAD; then
-              echo "No conflicts with $branch"
-            else
-              echo "Conflicts detected with $branch"
-            fi
-          done
+      if [ $? -eq 0 ]; then
+        echo "No merge conflicts detected."
+      else
+        echo "Merge conflicts detected! Please resolve them before merging."
+        exit 1
+      fi
