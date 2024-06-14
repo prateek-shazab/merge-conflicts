@@ -2,35 +2,22 @@ name: Check for Merge Conflicts
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize]
 
 jobs:
-  conflict-check:
+  check_merge_conflicts:
     runs-on: ubuntu-latest
+    
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0  # Fetch all history for all branches and tags
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Fetch the main branch
-      run: git fetch origin main
-
-    - name: Check for merge conflicts
-      run: |
-        # Checkout the branch from the pull request
-        git checkout ${{ github.head_ref }}
-
-        # Check if the branch checkout was successful
-        if [ $? -ne 0 ]; then
-          echo "Error: Failed to checkout branch ${{ github.head_ref }}. The branch might not exist."
-          exit 1
-        fi
-
-        # Attempt to merge the main branch into the PR branch
-        if ! git merge --no-commit --no-ff origin/main; then
-          echo "Merge conflict detected in PR #${{ github.event.pull_request.number }} on branch ${{ github.head_ref }}"
-          exit 1
-        else
-          echo "No merge conflicts detected."
-        fi
+      - name: Check for merge conflicts
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          if ! git merge --no-commit --no-ff origin/${{ github.event.pull_request.base.ref }}; then
+            echo "::error::Merge conflict detected. Please resolve the conflicts and update the pull request."
+            exit 1
+          fi
