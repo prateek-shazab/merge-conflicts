@@ -1,15 +1,20 @@
-name: Check Pull Request
+name: Check for Merge Conflicts
 
 on:
   pull_request:
-    branches: [ main ]
 
 jobs:
-  check-pr:
+  detect-conflicts:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Get the PR creator
-        run: echo "Pull request raised by ${{ github.event.pull_request.user.login }}"
+      - name: List files with merge conflict markers
+        run: |
+          git --no-pager grep "<<<<<<<" ":(exclude).github/" || true
+
+      - name: Fail job if conflicts are found
+        run: |
+          if [ $(git grep "<<<<<<<" ":(exclude).github/" | wc -l) -gt 0 ]; then
+            exit 1
+          fi
