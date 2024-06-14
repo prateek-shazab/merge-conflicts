@@ -1,12 +1,12 @@
-name: Check for Merge Conflicts (External Action)
+name: Check for Merge Conflicts
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   detect-conflicts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - uses: olivernybroe/action-conflict-finder@v2.0  # Replace with the desired version
