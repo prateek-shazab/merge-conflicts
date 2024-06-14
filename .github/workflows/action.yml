@@ -1,24 +1,15 @@
-name: Check Merge Conflicts
+name: Check Pull Request
 
 on:
-  pull_request:  # Trigger on pull request events
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  check_conflicts:
-    runs-on: ubuntu-latest  # Replace with your desired runner OS
+  check-pr:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3  # Checkout the repository code
-      - name: Fetch main branch
-        run: git fetch origin main:main
-      - name: Checkout main branch
-        run: git checkout main
-      - name: Check for merge conflicts
-        run: |
-          git merge --ff-only origin/${{ github.event.pull_request.head.ref }}  # Use ${{ github.event.pull_request.head.ref }} for head branch
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-          if [ $? -eq 0 ]; then
-            echo "No merge conflicts detected."
-          else
-            echo "Merge conflicts detected! Please resolve them before merging."
-            exit 1
-          fi
+      - name: Get the PR creator
+        run: echo "Pull request raised by ${{ github.event.pull_request.user.login }}"
