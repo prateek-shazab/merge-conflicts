@@ -1,4 +1,4 @@
-name: Check for Merge Conflicts
+name: Check for Merge Conflicts (External Action)
 
 on:
   pull_request:
@@ -9,12 +9,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: List files with merge conflict markers
-        run: |
-          git --no-pager grep "<<<<<<<" ":(exclude).github/" || true
-
-      - name: Fail job if conflicts are found
-        run: |
-          if [ $(git grep "<<<<<<<" ":(exclude).github/" | wc -l) -gt 0 ]; then
-            exit 1
-          fi
+      - uses: olivernybroe/action-conflict-finder@v2.0  # Replace with the desired version
