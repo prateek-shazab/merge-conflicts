@@ -1,25 +1,25 @@
-name: Check for Merge Conflicts
-
+name: Check for merge conflicts
 on:
-  pull_request:
-    types: [opened, synchronize]
+  schedule:
+    - cron: '* * * * *'  # This will run the action every day at midnight
 
 jobs:
-  check_merge_conflicts:
+  check-conflicts:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Fetch all branches
-        run: git fetch --all
+        with:
+          fetch-depth: 0  # This is required to fetch all branches
 
       - name: Check for merge conflicts
         run: |
-          # Attempt to merge the base branch into the current branch
-          git checkout ${{ github.event.pull_request.head.ref }}
-          if ! git merge origin/${{ github.event.pull_request.base.ref }} --no-commit --no-ff; then
-            echo "::error::Merge conflict detected. Please resolve the conflicts and update the pull request."
-            exit 1
-          fi
+          git fetch origin main:main
+          for branch in $(git branch -r | grep -v main); do
+            git checkout $branch
+            if git merge-base --is-ancestor main HEAD; then
+              echo "No conflicts with $branch"
+            else
+              echo "Conflicts detected with $branch"
+            fi
+          done
