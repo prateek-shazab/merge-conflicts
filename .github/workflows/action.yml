@@ -1,17 +1,24 @@
-stages:
-  - check_conflicts
+name: Check Merge Conflicts
+
+on:
+  pull_request:  # Trigger on pull request events
 
 jobs:
   check_conflicts:
-    stage: check_conflicts
-    script: |
-      git fetch origin main:main
-      git checkout main
-      git merge --ff-only origin/$CI_MERGE_REQUEST_IID_SOURCE
+    runs-on: ubuntu-latest  # Replace with your desired runner OS
+    steps:
+      - uses: actions/checkout@v3  # Checkout the repository code
+      - name: Fetch main branch
+        run: git fetch origin main:main
+      - name: Checkout main branch
+        run: git checkout main
+      - name: Check for merge conflicts
+        run: |
+          git merge --ff-only origin/${{ github.event.pull_request.head.ref }}  # Use ${{ github.event.pull_request.head.ref }} for head branch
 
-      if [ $? -eq 0 ]; then
-        echo "No merge conflicts detected."
-      else
-        echo "Merge conflicts detected! Please resolve them before merging."
-        exit 1
-      fi
+          if [ $? -eq 0 ]; then
+            echo "No merge conflicts detected."
+          else
+            echo "Merge conflicts detected! Please resolve them before merging."
+            exit 1
+          fi
