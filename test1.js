@@ -1,6 +1,4 @@
 jm
 jh
 okay
-all
-you
-me
+me 
