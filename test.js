@@ -1,4 +1,3 @@
 ab
 ac
-nn
-b
+ba
